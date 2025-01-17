@@ -1,4 +1,4 @@
-# 2025-01-16 22:34:48 by RouterOS 7.16.2
+# 2025-01-17 12:47:38 by RouterOS 7.16.2
 # software id = 8FQG-8SX1
 #
 # model = C53UiG+5HPaxD2HPaxD
@@ -6,6 +6,7 @@
 /interface bridge
 add name=hAp-ax3-bridge
 /interface wifi
+# DFS channel availability check (1 min)
 set [ find default-name=wifi1 ] configuration.country=Netherlands .mode=ap .ssid=Droadloos2 disabled=no
 set [ find default-name=wifi2 ] configuration.country=Netherlands .mode=ap .ssid=Droadloos1 disabled=no
 /interface list
