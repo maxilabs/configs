@@ -1,4 +1,4 @@
-# 2025-01-17 13:01:10 by RouterOS 7.16.2
+# 2025-01-18 20:14:56 by RouterOS 7.16.2
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -45,6 +45,16 @@ add address=192.168.88.0/24 comment=defconf dns-server=192.168.88.1 gateway=192.
 set allow-remote-requests=yes
 /ip dns static
 add address=192.168.88.1 comment=defconf name=router.lan type=A
+add address=192.168.88.32 name=vaultwarden.maxilabs.nl type=A
+add address=192.168.88.32 name=portainer.maxilabs.nl type=A
+add address=192.168.88.32 name=photoprism.maxilabs.nl type=A
+add address=192.168.88.32 name=cockpit.maxilabs.nl type=A
+add address=192.168.88.32 name=mailu.maxilabs.nl type=A
+add address=192.168.88.32 name=nextcloud.maxilabs.nl type=A
+add address=192.168.88.32 name=kopia.maxilabs.nl type=A
+add address=192.168.88.16 name=host.docker.internal type=A
+add address=192.168.88.16 name=gateway.docker.internal type=A
+add address=192.168.88.32 name=elysium.maxilabs.nl type=A
 /ip firewall address-list
 add address=89.205.132.236 comment="Trusted IP" list=https_whitelist
 add address=93.95.250.154 comment="Trusted IP" list=https_whitelist
@@ -67,9 +77,13 @@ add action=drop chain=forward comment="defconf: drop invalid" connection-state=i
 add action=drop chain=forward comment="defconf: drop all from WAN not DSTNATed" connection-nat-state=!dstnat connection-state=new in-interface-list=WAN
 add action=accept chain=forward comment="Allow HTTPS to 192.168.88.32" dst-address=192.168.88.32 dst-port=443 in-interface-list=WAN protocol=tcp src-address-list=https_whitelist
 add action=drop chain=forward comment="Drop non-whitelisted HTTPS traffic" dst-address=192.168.88.32 dst-port=443 in-interface-list=WAN protocol=tcp
+add action=accept chain=forward comment="Allow Enshrouded UDP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=udp
+add action=accept chain=forward comment="Allow Enshrouded TCP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=tcp
 /ip firewall nat
 add action=masquerade chain=srcnat comment="defconf: masquerade" ipsec-policy=out,none out-interface-list=WAN
 add action=dst-nat chain=dstnat comment="Forward HTTPS to 192.168.88.32" dst-port=443 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
+add action=dst-nat chain=dstnat comment="Enshrouded TCP" dst-port=15637 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
+add action=dst-nat chain=dstnat comment="Enshrouded UDP" dst-port=15637 in-interface-list=WAN protocol=udp to-addresses=192.168.88.32
 /ipv6 firewall address-list
 add address=::/128 comment="defconf: unspecified address" list=bad_ipv6
 add address=::1/128 comment="defconf: lo" list=bad_ipv6
