@@ -1,4 +1,4 @@
-# 2025-01-18 20:14:56 by RouterOS 7.16.2
+## 2025-01-25 11:38:22 by RouterOS 7.16.2
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -63,6 +63,7 @@ add address=84.241.198.171 comment="Trusted IP" list=https_whitelist
 add address=31.187.153.43 comment="Trusted IP" list=https_whitelist
 add address=89.205.140.133 comment="Trusted IP" list=https_whitelist
 add address=84.241.201.97 comment="Trusted IP" list=https_whitelist
+add address=93.95.250.42 comment="Trusted IP" list=https_whitelist
 /ip firewall filter
 add action=accept chain=input comment="defconf: accept established,related,untracked" connection-state=established,related,untracked
 add action=drop chain=input comment="defconf: drop invalid" connection-state=invalid
