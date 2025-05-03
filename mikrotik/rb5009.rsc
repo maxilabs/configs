@@ -1,4 +1,4 @@
-# 2025-05-03 23:30:02 by RouterOS 7.16.2
+# 2025-05-03 23:35:26 by RouterOS 7.16.2
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -86,13 +86,13 @@ add action=drop chain=forward comment="Drop non-whitelisted HTTPS traffic" dst-a
 add action=accept chain=forward comment="Allow Enshrouded UDP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=udp
 add action=accept chain=forward comment="Allow Enshrouded TCP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=tcp
 add action=accept chain=input comment="Allow WireGuard VPN" port=51830 protocol=udp
-add action=accept chain=forward comment="Allow VPN clients to communicate" src-address=10.10.10.0/24
+add action=accept chain=forward comment="Allow VPN clients to communicate" src-address=10.99.99.0/24
 /ip firewall nat
 add action=masquerade chain=srcnat comment="defconf: masquerade" ipsec-policy=out,none out-interface-list=WAN
 add action=dst-nat chain=dstnat comment="Forward HTTPS to 192.168.88.32" dst-port=443 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
 add action=dst-nat chain=dstnat comment="Enshrouded TCP" dst-port=15637 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
 add action=dst-nat chain=dstnat comment="Enshrouded UDP" dst-port=15637 in-interface-list=WAN protocol=udp to-addresses=192.168.88.32
-add action=masquerade chain=srcnat comment="Allow VPN clients to access the internet" src-address=10.10.10.0/24
+add action=masquerade chain=srcnat comment="Allow VPN clients to access the internet" src-address=10.99.99.0/24
 /ipv6 firewall address-list
 add address=::/128 comment="defconf: unspecified address" list=bad_ipv6
 add address=::1/128 comment="defconf: lo" list=bad_ipv6
