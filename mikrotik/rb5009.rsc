@@ -1,4 +1,4 @@
-## 2025-01-25 11:38:22 by RouterOS 7.16.2
+# 2025-05-03 23:30:02 by RouterOS 7.16.2
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -7,6 +7,8 @@
 add mtu=1514 name=iot
 add admin-mac=D4:01:C3:F5:B4:89 auto-mac=no comment=defconf name=lan
 add mtu=1514 name=wlan
+/interface wireguard
+add listen-port=51830 mtu=1420 name=wg0
 /interface vlan
 add interface=ether1 name=vlan300 vlan-id=300
 /interface list
@@ -32,8 +34,11 @@ set discover-interface-list=LAN
 /interface list member
 add comment=defconf interface=lan list=LAN
 add comment=defconf interface=vlan300 list=WAN
+/interface wireguard peers
+add allowed-address=10.99.99.2/24 interface=wg0 name=peer1 persistent-keepalive=25s public-key="JXPzqcEX4hXjj5g722ssadmzFFlLh0dou8rNCrLUc2s="
 /ip address
 add address=192.168.88.1/24 comment=defconf interface=lan network=192.168.88.0
+add address=10.99.99.1/24 interface=wg0 network=10.99.99.0
 /ip dhcp-client
 add comment=defconf interface=vlan300
 /ip dhcp-server lease
@@ -47,14 +52,14 @@ set allow-remote-requests=yes
 add address=192.168.88.1 comment=defconf name=router.lan type=A
 add address=192.168.88.32 name=vaultwarden.maxilabs.nl type=A
 add address=192.168.88.32 name=portainer.maxilabs.nl type=A
-add address=192.168.88.32 name=photoprism.maxilabs.nl type=A
 add address=192.168.88.32 name=cockpit.maxilabs.nl type=A
-add address=192.168.88.32 name=mailu.maxilabs.nl type=A
 add address=192.168.88.32 name=nextcloud.maxilabs.nl type=A
 add address=192.168.88.32 name=kopia.maxilabs.nl type=A
 add address=192.168.88.16 name=host.docker.internal type=A
 add address=192.168.88.16 name=gateway.docker.internal type=A
 add address=192.168.88.32 name=elysium.maxilabs.nl type=A
+add address=192.168.88.32 name=mattermost.maxilabs.nl type=A
+add address=192.168.88.32 name=immich.maxilabs.nl type=A
 /ip firewall address-list
 add address=89.205.132.236 comment="Trusted IP" list=https_whitelist
 add address=93.95.250.154 comment="Trusted IP" list=https_whitelist
@@ -80,11 +85,14 @@ add action=accept chain=forward comment="Allow HTTPS to 192.168.88.32" dst-addre
 add action=drop chain=forward comment="Drop non-whitelisted HTTPS traffic" dst-address=192.168.88.32 dst-port=443 in-interface-list=WAN protocol=tcp
 add action=accept chain=forward comment="Allow Enshrouded UDP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=udp
 add action=accept chain=forward comment="Allow Enshrouded TCP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=tcp
+add action=accept chain=input comment="Allow WireGuard VPN" port=51830 protocol=udp
+add action=accept chain=forward comment="Allow VPN clients to communicate" src-address=10.10.10.0/24
 /ip firewall nat
 add action=masquerade chain=srcnat comment="defconf: masquerade" ipsec-policy=out,none out-interface-list=WAN
 add action=dst-nat chain=dstnat comment="Forward HTTPS to 192.168.88.32" dst-port=443 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
 add action=dst-nat chain=dstnat comment="Enshrouded TCP" dst-port=15637 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
 add action=dst-nat chain=dstnat comment="Enshrouded UDP" dst-port=15637 in-interface-list=WAN protocol=udp to-addresses=192.168.88.32
+add action=masquerade chain=srcnat comment="Allow VPN clients to access the internet" src-address=10.10.10.0/24
 /ipv6 firewall address-list
 add address=::/128 comment="defconf: unspecified address" list=bad_ipv6
 add address=::1/128 comment="defconf: lo" list=bad_ipv6
