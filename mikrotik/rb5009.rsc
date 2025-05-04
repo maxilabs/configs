@@ -1,4 +1,4 @@
-# 2025-05-03 23:35:26 by RouterOS 7.16.2
+# 2025-05-04 15:53:52 by RouterOS 7.16.2
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -14,6 +14,8 @@ add interface=ether1 name=vlan300 vlan-id=300
 /interface list
 add comment=defconf name=WAN
 add comment=defconf name=LAN
+add name=VPN
+add name=TRUSTED
 /ip pool
 add name=default-dhcp ranges=192.168.88.10-192.168.88.254
 /ip dhcp-server
@@ -34,6 +36,9 @@ set discover-interface-list=LAN
 /interface list member
 add comment=defconf interface=lan list=LAN
 add comment=defconf interface=vlan300 list=WAN
+add interface=wg0 list=VPN
+add interface=lan list=TRUSTED
+add interface=wg0 list=TRUSTED
 /interface wireguard peers
 add allowed-address=10.99.99.2/24 interface=wg0 name=peer1 persistent-keepalive=25s public-key="JXPzqcEX4hXjj5g722ssadmzFFlLh0dou8rNCrLUc2s="
 /ip address
@@ -74,7 +79,7 @@ add action=accept chain=input comment="defconf: accept established,related,untra
 add action=drop chain=input comment="defconf: drop invalid" connection-state=invalid
 add action=accept chain=input comment="defconf: accept ICMP" protocol=icmp
 add action=accept chain=input comment="defconf: accept to local loopback (for CAPsMAN)" dst-address=127.0.0.1
-add action=drop chain=input comment="defconf: drop all not coming from LAN" in-interface-list=!LAN
+add action=drop chain=input comment="defconf: drop all not coming from TRUSTED" in-interface-list=!TRUSTED
 add action=accept chain=forward comment="defconf: accept in ipsec policy" ipsec-policy=in,ipsec
 add action=accept chain=forward comment="defconf: accept out ipsec policy" ipsec-policy=out,ipsec
 add action=fasttrack-connection chain=forward comment="defconf: fasttrack" connection-state=established,related hw-offload=yes
@@ -87,6 +92,7 @@ add action=accept chain=forward comment="Allow Enshrouded UDP" dst-address=192.1
 add action=accept chain=forward comment="Allow Enshrouded TCP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=tcp
 add action=accept chain=input comment="Allow WireGuard VPN" port=51830 protocol=udp
 add action=accept chain=forward comment="Allow VPN clients to communicate" src-address=10.99.99.0/24
+add action=accept chain=input comment="Allow VPN clients to reach router" dst-address=10.99.99.1 in-interface=wg0 src-address=10.99.99.0/24
 /ip firewall nat
 add action=masquerade chain=srcnat comment="defconf: masquerade" ipsec-policy=out,none out-interface-list=WAN
 add action=dst-nat chain=dstnat comment="Forward HTTPS to 192.168.88.32" dst-port=443 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
