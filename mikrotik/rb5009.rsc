@@ -1,4 +1,4 @@
-# 2025-05-04 15:53:52 by RouterOS 7.16.2
+# 2025-05-05 14:59:40 by RouterOS 7.16.2
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -40,7 +40,7 @@ add interface=wg0 list=VPN
 add interface=lan list=TRUSTED
 add interface=wg0 list=TRUSTED
 /interface wireguard peers
-add allowed-address=10.99.99.2/24 interface=wg0 name=peer1 persistent-keepalive=25s public-key="JXPzqcEX4hXjj5g722ssadmzFFlLh0dou8rNCrLUc2s="
+add allowed-address=10.99.99.2/32 interface=wg0 name=peer3 persistent-keepalive=25s public-key="2K9DWoeJgP6LMmFZMedmaZagda8EnmxbR5kAc/F+0iE="
 /ip address
 add address=192.168.88.1/24 comment=defconf interface=lan network=192.168.88.0
 add address=10.99.99.1/24 interface=wg0 network=10.99.99.0
@@ -79,26 +79,32 @@ add action=accept chain=input comment="defconf: accept established,related,untra
 add action=drop chain=input comment="defconf: drop invalid" connection-state=invalid
 add action=accept chain=input comment="defconf: accept ICMP" protocol=icmp
 add action=accept chain=input comment="defconf: accept to local loopback (for CAPsMAN)" dst-address=127.0.0.1
-add action=drop chain=input comment="defconf: drop all not coming from TRUSTED" in-interface-list=!TRUSTED
 add action=accept chain=forward comment="defconf: accept in ipsec policy" ipsec-policy=in,ipsec
 add action=accept chain=forward comment="defconf: accept out ipsec policy" ipsec-policy=out,ipsec
 add action=fasttrack-connection chain=forward comment="defconf: fasttrack" connection-state=established,related hw-offload=yes
 add action=accept chain=forward comment="defconf: accept established,related, untracked" connection-state=established,related,untracked
 add action=drop chain=forward comment="defconf: drop invalid" connection-state=invalid
-add action=drop chain=forward comment="defconf: drop all from WAN not DSTNATed" connection-nat-state=!dstnat connection-state=new in-interface-list=WAN
 add action=accept chain=forward comment="Allow HTTPS to 192.168.88.32" dst-address=192.168.88.32 dst-port=443 in-interface-list=WAN protocol=tcp src-address-list=https_whitelist
 add action=drop chain=forward comment="Drop non-whitelisted HTTPS traffic" dst-address=192.168.88.32 dst-port=443 in-interface-list=WAN protocol=tcp
 add action=accept chain=forward comment="Allow Enshrouded UDP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=udp
 add action=accept chain=forward comment="Allow Enshrouded TCP" dst-address=192.168.88.32 dst-port=15637 in-interface-list=WAN protocol=tcp
-add action=accept chain=input comment="Allow WireGuard VPN" port=51830 protocol=udp
+add action=drop chain=forward comment="defconf: drop all from WAN not DSTNATed" connection-nat-state=!dstnat connection-state=new in-interface-list=WAN
+add action=accept chain=input comment="Allow WireGuard handshake" dst-port=51830 protocol=udp
 add action=accept chain=forward comment="Allow VPN clients to communicate" src-address=10.99.99.0/24
-add action=accept chain=input comment="Allow VPN clients to reach router" dst-address=10.99.99.1 in-interface=wg0 src-address=10.99.99.0/24
+add action=accept chain=input comment="Allow VPN clients to reach router" in-interface=wg0 src-address=10.99.99.0/24
+add action=log chain=input in-interface=wg0 log-prefix="WG-IN: "
+add action=log chain=forward log-prefix="WG-FWD: " src-address=10.99.99.0/24
+add action=drop chain=input comment="defconf: drop all not coming from TRUSTED" in-interface-list=!TRUSTED
+/ip firewall mangle
+add action=change-mss chain=forward comment="Clamp MSS over VPN" new-mss=1360 out-interface=wg0 protocol=tcp tcp-flags=syn
+add action=accept chain=forward comment="Allow clean TCP teardown" protocol=tcp tcp-flags=fin,rst
 /ip firewall nat
 add action=masquerade chain=srcnat comment="defconf: masquerade" ipsec-policy=out,none out-interface-list=WAN
 add action=dst-nat chain=dstnat comment="Forward HTTPS to 192.168.88.32" dst-port=443 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
 add action=dst-nat chain=dstnat comment="Enshrouded TCP" dst-port=15637 in-interface-list=WAN protocol=tcp to-addresses=192.168.88.32
 add action=dst-nat chain=dstnat comment="Enshrouded UDP" dst-port=15637 in-interface-list=WAN protocol=udp to-addresses=192.168.88.32
-add action=masquerade chain=srcnat comment="Allow VPN clients to access the internet" src-address=10.99.99.0/24
+add action=masquerade chain=srcnat comment="Allow VPN clients to access the internet" out-interface-list=WAN src-address=10.99.99.0/24
+add action=log chain=srcnat log-prefix="WG-NAT: " out-interface-list=WAN src-address=10.99.99.0/24
 /ipv6 firewall address-list
 add address=::/128 comment="defconf: unspecified address" list=bad_ipv6
 add address=::1/128 comment="defconf: lo" list=bad_ipv6
@@ -119,7 +125,6 @@ add action=accept chain=input comment="defconf: accept IKE" dst-port=500,4500 pr
 add action=accept chain=input comment="defconf: accept ipsec AH" protocol=ipsec-ah
 add action=accept chain=input comment="defconf: accept ipsec ESP" protocol=ipsec-esp
 add action=accept chain=input comment="defconf: accept all that matches ipsec policy" ipsec-policy=in,ipsec
-add action=drop chain=input comment="defconf: drop everything else not coming from LAN" in-interface-list=!LAN
 add action=accept chain=forward comment="defconf: accept established,related,untracked" connection-state=established,related,untracked
 add action=drop chain=forward comment="defconf: drop invalid" connection-state=invalid
 add action=drop chain=forward comment="defconf: drop packets with bad src ipv6" src-address-list=bad_ipv6
@@ -131,7 +136,7 @@ add action=accept chain=forward comment="defconf: accept IKE" dst-port=500,4500 
 add action=accept chain=forward comment="defconf: accept ipsec AH" protocol=ipsec-ah
 add action=accept chain=forward comment="defconf: accept ipsec ESP" protocol=ipsec-esp
 add action=accept chain=forward comment="defconf: accept all that matches ipsec policy" ipsec-policy=in,ipsec
-add action=drop chain=forward comment="defconf: drop everything else not coming from LAN" in-interface-list=!LAN
+add action=drop chain=input comment="Drop all IPv6 not from TRUSTED" in-interface-list=!TRUSTED
 /system clock
 set time-zone-name=Europe/Amsterdam
 /system note
