@@ -1,4 +1,4 @@
-# 2025-01-17 12:47:38 by RouterOS 7.16.2
+# 2025-08-05 21:13:18 by RouterOS 7.19.4
 # software id = 8FQG-8SX1
 #
 # model = C53UiG+5HPaxD2HPaxD
@@ -36,6 +36,8 @@ add bridge=hAp-ax3-bridge interface=wifi2
 /interface list member
 add interface=hAp-ax3-bridge list=LAN
 add interface=ether1 list=WAN
+/interface ovpn-server server
+add mac-address=FE:09:7C:67:00:1A name=ovpn-server1
 /ip address
 add address=172.16.0.1/24 interface=hAp-ax3-bridge network=172.16.0.0
 /ip dhcp-client
@@ -48,5 +50,3 @@ set allow-remote-requests=yes servers=192.168.1.1
 add action=masquerade chain=srcnat out-interface-list=WAN
 /system clock
 set time-zone-name=Europe/Amsterdam
-/system note
-set show-at-login=no
