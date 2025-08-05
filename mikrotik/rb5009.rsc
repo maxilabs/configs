@@ -1,4 +1,4 @@
-# 2025-08-05 21:15:41 by RouterOS 7.16.2
+# 2025-08-05 21:24:17 by RouterOS 7.19.4
 # software id = 6PH6-YFG6
 #
 # model = RB5009UPr+S+
@@ -41,6 +41,8 @@ add comment=defconf interface=vlan300 list=WAN
 add interface=wg0 list=VPN
 add interface=lan list=TRUSTED
 add interface=wg0 list=TRUSTED
+/interface ovpn-server server
+add mac-address=FE:F6:B0:A5:4D:F9 name=ovpn-server1
 /interface wireguard peers
 add allowed-address=10.99.99.2/32 interface=wg0 name=peer3 persistent-keepalive=25s public-key="2K9DWoeJgP6LMmFZMedmaZagda8EnmxbR5kAc/F+0iE="
 /ip address
@@ -142,8 +144,6 @@ add action=accept chain=forward comment="defconf: accept all that matches ipsec 
 add action=drop chain=input comment="Drop all IPv6 not from TRUSTED" in-interface-list=!TRUSTED
 /system clock
 set time-zone-name=Europe/Amsterdam
-/system note
-set show-at-login=no
 /tool mac-server
 set allowed-interface-list=LAN
 /tool mac-server mac-winbox
